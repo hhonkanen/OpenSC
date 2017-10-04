@@ -67,6 +67,7 @@ extern "C" {
 /* FIXME: the flag below is misleading */
 #define SC_SEC_ENV_KEY_REF_ASYMMETRIC	0x0008
 #define SC_SEC_ENV_ALG_PRESENT		0x0010
+#define SC_SEC_ENV_TARGET_FILE_REF_PRESENT 0x0020
 
 /* PK algorithms */
 #define SC_ALGORITHM_RSA		0
@@ -180,6 +181,7 @@ typedef struct sc_security_env {
 	struct sc_path file_ref;
 	unsigned char key_ref[8];
 	size_t key_ref_len;
+	struct sc_path target_file_ref; /* target key file in unwrap operation */
 
 	struct sc_supported_algo_info supported_algos[SC_MAX_SUPPORTED_ALGORITHMS];
 } sc_security_env_t;
