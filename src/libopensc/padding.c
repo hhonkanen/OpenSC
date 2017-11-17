@@ -302,7 +302,17 @@ int sc_get_encoding_flags(sc_context_t *ctx,
 			*sflags |= SC_ALGORITHM_RSA_PAD_PKCS1;
 		else
 			*pflags |= SC_ALGORITHM_RSA_PAD_PKCS1;
-	} else if ((iflags & SC_ALGORITHM_RSA_PADS) == SC_ALGORITHM_RSA_PAD_NONE) {
+	} else if ((iflags & SC_ALGORITHM_AES) == SC_ALGORITHM_AES) { /* TODO: seems like this constant does not belong to the same set of flags used form asymmetric algos. Fix this! */
+		*sflags = 0;
+		*pflags = 0;
+	} else if ((iflags & SC_ALGORITHM_AES_FLAGS) > 0) {
+		*sflags = iflags & SC_ALGORITHM_AES_FLAGS;
+		if (iflags & SC_ALGORITHM_AES_CBC_PAD)
+			*pflags = SC_ALGORITHM_AES_CBC_PAD;
+		else
+			*pflags = 0;
+	}
+	else if ((iflags & SC_ALGORITHM_RSA_PADS) == SC_ALGORITHM_RSA_PAD_NONE) {
 		
 		/* Work with RSA, EC and maybe GOSTR? */
 		if (!(caps & SC_ALGORITHM_RAW_MASK))
