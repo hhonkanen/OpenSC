@@ -122,8 +122,8 @@ struct sc_pkcs11_object_ops {
 
 	CK_RV (*wrap_key)(struct sc_pkcs11_session *, void *,
 			CK_MECHANISM_PTR,
-			CK_ATTRIBUTE_PTR pAttributes, CK_ULONG,
-			void **);
+			void*,
+			CK_BYTE_PTR pData, CK_ULONG_PTR ulDataLen);
 
 	/* Others to be added when implemented */
 };
@@ -429,7 +429,8 @@ CK_RV sc_pkcs11_verif_final(struct sc_pkcs11_session *, CK_BYTE_PTR, CK_ULONG);
 #endif
 CK_RV sc_pkcs11_decr_init(struct sc_pkcs11_session *, CK_MECHANISM_PTR, struct sc_pkcs11_object *, CK_MECHANISM_TYPE);
 CK_RV sc_pkcs11_decr(struct sc_pkcs11_session *, CK_BYTE_PTR, CK_ULONG, CK_BYTE_PTR, CK_ULONG_PTR);
-CK_RV sc_pkcs11_unwrap(struct sc_pkcs11_session *,CK_MECHANISM_PTR, struct sc_pkcs11_object *, CK_KEY_TYPE, CK_SESSION_HANDLE, CK_BYTE_PTR, CK_ULONG, struct sc_pkcs11_object *);
+CK_RV sc_pkcs11_wrap(struct sc_pkcs11_session *,CK_MECHANISM_PTR, struct sc_pkcs11_object *, CK_KEY_TYPE, struct sc_pkcs11_object *, CK_BYTE_PTR, CK_ULONG_PTR);
+CK_RV sc_pkcs11_unwrap(struct sc_pkcs11_session *,CK_MECHANISM_PTR, struct sc_pkcs11_object *, CK_KEY_TYPE, CK_BYTE_PTR, CK_ULONG, struct sc_pkcs11_object *);
 CK_RV sc_pkcs11_deri(struct sc_pkcs11_session *, CK_MECHANISM_PTR,
 				struct sc_pkcs11_object *, CK_KEY_TYPE,
 				CK_SESSION_HANDLE, CK_OBJECT_HANDLE, struct sc_pkcs11_object *);
