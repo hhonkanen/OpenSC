@@ -296,7 +296,6 @@ int sc_get_encoding_flags(sc_context_t *ctx,
 			break;
 		}
 	}
-
 	if (iflags & SC_ALGORITHM_RSA_PAD_PKCS1) {
 		if (caps & SC_ALGORITHM_RSA_PAD_PKCS1)
 			*sflags |= SC_ALGORITHM_RSA_PAD_PKCS1;

@@ -2229,6 +2229,8 @@ pkcs15_create_secret_key(struct sc_pkcs11_slot *slot, struct sc_profile *profile
 
 	switch (key_type) {
 		case CKK_GENERIC_SECRET:
+		    args.algorithm = SC_ALGORITHM_UNDEFINED;
+		    break;
 		case CKK_AES:
 		    args.algorithm = SC_ALGORITHM_AES;
 		    break;
@@ -2663,8 +2665,9 @@ pkcs15_create_object(struct sc_pkcs11_slot *slot, CK_ATTRIBUTE_PTR pTemplate, CK
 	 * PKCS#11 says the default is false.
 	 * for backward compatibility, will default to TRUE
 	 */
-	 /* Dont need profile id creating session only objects */
-	if (_token == TRUE) {
+	 /* Dont need profile id creating session only objects,
+	    except when the card supports temporary on card session objects */
+	if (_token == TRUE || (p11card->card->caps & SC_CARD_CAP_ONCARD_SESSION_OBJECTS) == SC_CARD_CAP_ONCARD_SESSION_OBJECTS) {
 		struct sc_aid *aid = NULL;
 
 		rc = sc_lock(p11card->card);
@@ -3934,7 +3937,7 @@ pkcs15_prkey_unwrap(struct sc_pkcs11_session *session, void *obj,
 
 	/* Call the card to do the unwrap operation */
 	rv = sc_pkcs15_unwrap(fw_data->p15_card, prkey->prv_p15obj, targetKeyObj->p15_object, 0,
-		pWrappedKey, ulWrappedKeyLen);
+		pWrappedKey, ulWrappedKeyLen, NULL, 0);
 
 	sc_unlock(p11card->card);
 
@@ -4710,10 +4713,13 @@ pkcs15_skey_unwrap(struct sc_pkcs11_session *session, void *obj,
 	/* Select the proper padding mechanism */
 	switch (pMechanism->mechanism) {
 	case CKM_AES_ECB:
-		flags |= SC_ALGORITHM_AES;	/* TODO: may need to define separate constants for ECB and CBC in opensc.h */
+		flags |= SC_ALGORITHM_AES_ECB;
+		break;
+	case CKM_AES_CBC_PAD:
+		flags |= SC_ALGORITHM_AES_CBC_PAD;
 		break;
 	case CKM_AES_CBC:
-		flags |= SC_ALGORITHM_AES;
+		flags |= SC_ALGORITHM_AES_CBC; /* in this case, pMechanism->pParameter contains IV */
 		break;
 	default:
 		return CKR_MECHANISM_INVALID;
@@ -4726,7 +4732,7 @@ pkcs15_skey_unwrap(struct sc_pkcs11_session *session, void *obj,
 
 	/* Call the card to do the unwrap operation */
 	rv = sc_pkcs15_unwrap(fw_data->p15_card, skey->prv_p15obj, targetKeyObj->prv_p15obj, flags,
-		pWrappedKey, ulWrappedKeyLen);
+		pWrappedKey, ulWrappedKeyLen, pMechanism->pParameter, pMechanism->ulParameterLen);
 
 	sc_unlock(p11card->card);
 
@@ -4779,10 +4785,13 @@ pkcs15_skey_wrap(struct sc_pkcs11_session *session, void *obj,
 	/* Select the proper padding mechanism */
 	switch (pMechanism->mechanism) {
 	case CKM_AES_ECB:
-		flags |= SC_ALGORITHM_AES;	/* TODO: may need to define separate constants for ECB and CBC in opensc.h */
+		flags |= SC_ALGORITHM_AES_ECB;
+		break;
+	case CKM_AES_CBC_PAD:	/* with CBC, pMechanism->pParameter contains IV */
+		flags |= SC_ALGORITHM_AES_CBC_PAD;
 		break;
 	case CKM_AES_CBC:
-		flags |= SC_ALGORITHM_AES;
+		flags |= SC_ALGORITHM_AES_CBC;
 		break;
 	default:
 		return CKR_MECHANISM_INVALID;
@@ -4795,7 +4804,7 @@ pkcs15_skey_wrap(struct sc_pkcs11_session *session, void *obj,
 
 	/* Call the card to do the wrapping operation */
 	rv = sc_pkcs15_wrap(fw_data->p15_card, skey->prv_p15obj, targetKeyObj->prv_p15obj, flags,
-		pData, pulDataLen);
+		pData, pulDataLen, pMechanism->pParameter, pMechanism->ulParameterLen);
 
 	sc_unlock(p11card->card);
 
