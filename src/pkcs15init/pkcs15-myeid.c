@@ -638,11 +638,13 @@ myeid_create_key(struct sc_profile *profile, struct sc_pkcs15_card *p15card,
 			LOG_TEST_RET(ctx, SC_ERROR_OBJECT_NOT_VALID, "NULL or invalid sc_pkcs15_auth_info in pin object");
 		}
 
+		if (file->sec_attr_len >= 3) /* The security attributes should be filled from the profile at this point. */
+			memcpy(sec_attrs, file->sec_attr, 3);
+
 		pin_reference = pkcs15_auth_info->attrs.pin.reference;
 
 		if (pin_reference >= 1 && pin_reference < MYEID_MAX_PINS) {
-			sec_attrs[0] = (pin_reference << 4 | (pin_reference & 0x0F));
-			sec_attrs[1] = (pin_reference << 4 | (pin_reference & 0x0F));
+			sec_attrs[0] |= pin_reference << 4; /* Set USE permission according to auth_id of the key object, and leave other sec attrs as set in the profile. */
 			sc_file_set_sec_attr(file, sec_attrs, sizeof(sec_attrs));
 		}
 	}
